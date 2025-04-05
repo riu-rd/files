@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/dariu/OneDrive/Desktop/WSDA_Music.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="125"/><column_width id="3" width="5253"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,5:mainTrack"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="Album" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="84"/><column index="2" value="280"/><column index="3" value="76"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Artist" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort><column index="1" mode="0"/></sort><column_widths><column index="1" value="76"/><column index="2" value="187"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Invoice" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="93"/><column index="2" value="111"/><column index="3" value="162"/><column index="4" value="300"/><column index="5" value="167"/><column index="6" value="109"/><column index="7" value="132"/><column index="8" value="160"/><column index="9" value="66"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="MediaType" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="121"/><column index="2" value="212"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Playlist" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="91"/><column index="2" value="199"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="Track" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort><column index="3" mode="0"/></sort><column_widths><column index="1" value="75"/><column index="2" value="187"/><column index="3" value="84"/><column index="4" value="121"/><column index="5" value="80"/><column index="6" value="244"/><column index="7" value="115"/><column index="8" value="97"/><column index="9" value="88"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="V_AvgTotal" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="128"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="QUERY">/*
+Created By: Darius Ardales
+Created Date: 12/22/2023
+Description: This query displays the top 10 customers' first names, last names, and email addresses
+*/
+
+SELECT
+	FirstName AS 'Customer First Name',
+	LastName AS 'Customer Last Name',
+	Email AS EMAIL
+FROM
+	Customer
+ORDER BY
+	FirstName ASC,
+	LastName DESC
+LIMIT 10</sql><sql name="WHERE">/*
+Created By: Darius Ardales
+Created Date: 12/22/2023
+Description: Customers who purchased two songs at 0.99 each
+*/
+
+-- % means I don't care what comes next (Wild Card Operator)
+
+SELECT
+	InvoiceDate,
+	BillingAddress,
+	BillingCity,
+	total
+FROM	
+	Invoice
+WHERE
+--  total = 1.98
+--  total BETWEEN 1.98 AND 3.96	
+--	total IN (1.98, 3.96)
+--	BillingCity = 'Brussels'
+--	BillingCity IN ('Brussels', 'Orlando', 'Paris')
+--	BillingCity LIKE '%B%'
+--	InvoiceDate = '2010-05-22 00:00:00'
+--	DATE(InvoiceDate) = '2010-05-22'
+--	DATE(InvoiceDate) &gt; '2010-05-22' AND total &lt; 3.00
+--	BillingCity LIKE 'P%' OR BillingCity LIKE 'D%'
+	total &gt; 1.98 AND (BillingCity LIKE 'P%' OR BillingCity LIKE 'D%')
+ORDER BY
+	InvoiceDate</sql><sql name="CASE">/*
+Created By: Darius Ardales
+Created Date: 12/23/2023
+Description: 
+	Sales Categories:
+	Baseline Purchase = Between 0.99 and 1.99
+	Low Purchase = Between 2.00 and 6.99
+	Target Purchase = Between 7.00 and 15.00
+	Top Performer = Above 15.00
+*/
+
+SELECT
+	InvoiceDate,
+	BillingAddress,
+	BillingCity,
+	total,
+	CASE
+	WHEN total &lt;2.00 THEN 'Baseline Purchase'
+	WHEN total BETWEEN 2.00 AND 6.99 THEN 'Low Purchase'
+	WHEN total BETWEEN 7.00 AND 15.00 THEN 'Target Purchase'
+	ELSE 'Top Performer'
+	END AS 'PurchaseType'
+FROM	
+	Invoice
+WHERE
+	PurchaseType = 'Top Performer'
+ORDER BY
+	BillingCity
+
+</sql><sql name="JOIN">/*
+Created By: Darius Ardales
+Created Date: 12/23/2023
+Description: JOINS
+*/
+
+SELECT 
+	c.LastName,
+	c.FirstName,
+	i.InvoiceId,
+	i.CustomerId,
+	i.InvoiceDate,
+	i.total
+FROM
+	Invoice AS i
+INNER JOIN --LEFT OUTER JOIN
+	Customer AS c
+ON
+	i.CustomerId = c.CustomerId
+ORDER BY
+	c.CustomerId;
+	
+SELECT
+	e.FirstName,
+	e.LastName,
+	e.EmployeeId,
+	c.FirstName,
+	c.LastName,
+	c.SupportRepId,
+	i.total
+FROM
+	Invoice AS i
+INNER JOIN
+	Customer AS c
+ON
+	i.CustomerId = c.CustomerId
+INNER JOIN
+	Employee AS e
+ON
+	c.SupportRepId = e.EmployeeId
+ORDER BY
+	i.total DESC
+LIMIT 10;
+</sql><sql name="FUNCTION">/*
+Created By: Darius Ardales
+Created Date: 12/23/2023
+Description: DATE functions and other functions
+*/
+
+-- Use || to concatenate
+-- Use SUBSTR(the string, the  starting position, number of characters) to Truncate
+-- Use Upper, Lower to transform strings
+
+SELECT
+	LastName,
+	FirstName,
+	BirthDate,
+	STRFTIME('%Y-%m-%d', BirthDate) AS 'Birthdate No Timecode',
+	STRFTIME('%Y-%m-%d', 'now') - STRFTIME('%Y-%m-%d', BirthDate) AS Age
+FROM
+	Employee;
+
+	
+-- Aggregate Functions
+SELECT
+	SUM(Total) AS 'Total Sales',
+	ROUND( AVG(Total), 2) AS 'Average Sales',
+	MAX(Total) AS 'Maximum Sales',
+	MIN(Total) AS 'Minimum Sales',
+	COUNT(*) AS 'Sales Count'
+FROM
+	Invoice;</sql><sql name="GROUPING">/*
+Created By: Darius Ardales
+Created Date: 12/23/2023
+Description: Grouping in SQL | What are the average invoice totals greater than 5.00 for cities starting with B?
+*/
+
+SELECT
+	BillingCity,
+	ROUND(AVG(total), 2) AS 'AverageTotal'
+FROM
+	Invoice
+WHERE 
+	BillingCity LIKE 'L%'
+GROUP BY
+	BillingCity
+HAVING
+	AverageTotal &gt; 5.00
+ORDER BY
+	BillingCity;
+	
+
+-- What are the average invoice totals by billing country and city?
+SELECT 
+	BillingCountry,
+	BillingCity,
+	ROUND(AVG(total),2)
+FROM
+	Invoice
+GROUP BY
+	BillingCountry, BillingCity
+ORDER BY
+	BillingCountry;</sql><sql name="SUBQUERY">/*
+Created By: Darius Ardales
+Created Date: 12/23/2023
+Description: Subqueries
+*/
+
+SELECT
+	BillingAddress,
+	BillingCity, 
+	AVG(total) AS 'City Average',
+	(SELECT AVG(total) FROM Invoice) AS 'Global Average'
+FROM
+	Invoice
+--WHERE
+	-- this is a subquery
+	--total &lt;(SELECT AVG(total)FROM Invoice)
+GROUP BY
+	BillingCity
+ORDER BY
+	total DESC;
+
+	
+-- returning multiple records from a subquery
+SELECT
+	InvoiceDate,
+	BillingAddress,
+	BillingCity
+FROM
+	Invoice
+WHERE
+	InvoiceDate IN
+(SELECT	
+	InvoiceDate
+FROM
+	Invoice
+WHERE
+	InvoiceId IN (251,252,254))
+ORDER BY
+	InvoiceDate DESC;
+	
+	
+-- Subqueries and distinct } Which tracks are not selling?
+SELECT
+	TrackId,
+	Composer,
+	Name
+FROM 
+	Track
+WHERE
+TrackId NOT IN
+	(SELECT
+		DISTINCT
+		TrackId
+	FROM
+		InvoiceLine
+	ORDER BY
+		TrackId)
+ORDER BY
+	TrackId</sql><sql name="VIEWS">/*
+Created By: Darius Ardales
+Created Date: 12/23/2023
+Description: Views
+*/
+
+CREATE VIEW V_AvgTotal AS
+SELECT
+	ROUND(AVG(total),2) AS 'Average Total'
+FROM 
+	Invoice</sql><sql name="MANIPULATION">/*
+Created By: Darius Ardales
+Created Date: 12/23/2023
+Description: Data Manipulation
+*/
+
+-- Insert Data
+INSERT INTO
+	Artist (Name)
+VALUES ('Bob Marley');
+
+-- Update Data
+UPDATE
+	Artist
+SET 
+	Name = 'Damian Marley'
+WHERE
+	ArtistId = 276;
+
+-- Delete Data
+DELETE FROM
+	Artist
+WHERE
+	ArtistId = 276;</sql><current_tab id="8"/></tab_sql></sqlb_project>
